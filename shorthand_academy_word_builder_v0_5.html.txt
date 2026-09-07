@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Interactive Word Builder - Shorthand Academy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        .header { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .header h1 { color: #f5576c; font-size: 28px; margin-bottom: 5px; }
+        .header p { color: #666; font-size: 14px; }
+        .progress-bar { background: #f0f0f0; border-radius: 10px; height: 10px; margin-top: 15px; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #f093fb, #f5576c); height: 100%; width: 0%; transition: width 0.5s ease; }
+        .progress-text { text-align: right; font-size: 12px; color: #666; margin-top: 5px; }
+        .card { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .card h2 { color: #333; font-size: 22px; margin-bottom: 15px; }
+        .btn { background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: transform 0.2s; margin: 5px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(245, 87, 108, 0.4); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .btn-success { background: #28a745; }
+        .hidden { display: none; }
+        .welcome-content { text-align: center; padding: 30px; }
+        .welcome-content h2 { color: #f5576c; font-size: 32px; margin-bottom: 15px; }
+        .mode-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 15px; margin: 30px 0; }
+        .mode-card { background: #f8f9ff; border: 2px solid #e0e0ff; border-radius: 12px; padding: 25px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .mode-card:hover { border-color: #f5576c; transform: translateY(-5px); box-shadow: 0 10px 20px rgba(245, 87, 108, 0.2); }
+        .mode-icon { font-size: 48px; margin-bottom: 10px; }
+        .mode-title { font-weight: bold; color: #333; font-size: 18px; margin-bottom: 8px; }
+        .mode-desc { font-size: 13px; color: #666; }
+        .word-builder { padding: 20px; }
+        .word-info { text-align: center; margin-bottom: 20px; }
+        .word-display { font-size: 36px; font-weight: bold; color: #f5576c; margin: 10px 0; }
+        .word-pronunciation { color: #666; font-size: 16px; font-style: italic; }
+        .sound-breakdown { display: flex; justify-content: center; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+        .sound-chip { background: #f093fb; color: white; padding: 8px 16px; border-radius: 20px; font-weight: bold; font-size: 18px; }
+        .sound-chip.vowel { background: #f5576c; }
+        .consonant-options, .vowel-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(60px, 1fr)); gap: 8px; margin: 20px 0; }
+        .consonant-btn, .vowel-btn { background: white; border: 2px solid #e0e0ff; border-radius: 8px; padding: 12px; font-size: 20px; font-weight: bold; cursor: pointer; transition: all 0.3s; }
+        .consonant-btn:hover, .vowel-btn:hover { border-color: #f093fb; background: #f8f9ff; transform: translateY(-2px); }
+        .consonant-btn.selected, .vowel-btn.selected { border-color: #f093fb; background: #f093fb; color: white; }
+        .consonant-btn.correct, .vowel-btn.correct { border-color: #28a745; background: #28a745; color: white; }
+        .outline-preview { background: white; border: 2px solid #f093fb; border-radius: 12px; padding: 30px; margin: 20px 0; min-height: 150px; display: flex; align-items: center; justify-content: center; position: relative; }
+        .feedback { padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center; font-weight: bold; }
+        .feedback.correct { background: #d4edda; color: #155724; }
+        .feedback.incorrect { background: #f8d7da; color: #721c24; }
+        .feedback.info { background: #d1ecf1; color: #0c5460; }
+        .steps-indicator { display: flex; justify-content: center; gap: 10px; margin: 20px 0; }
+        .step { width: 40px; height: 40px; border-radius: 50%; background: #e0e0ff; color: #666; display: flex; align-items: center; justify-content: center; font-weight: bold; transition: all 0.3s; }
+        .step.active { background: #f093fb; color: white; }
+        .step.completed { background: #28a745; color: white; }
+        .action-buttons { display: flex; justify-content: center; gap: 10px; margin: 20px 0; flex-wrap: wrap; }
+        .quiz-options-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
+        .quiz-outline-option { background: #f8f9ff; border: 2px solid #e0e0ff; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; min-height: 120px; display: flex; align-items: center; justify-content: center; }
+        .quiz-outline-option:hover { border-color: #f093fb; background: #f0f9ff; }
+        .quiz-outline-option.selected { border-color: #f093fb; background: #e8f4ff; }
+        .quiz-outline-option.correct { border-color: #28a745; background: #d4edda; }
+        .quiz-outline-option.incorrect { border-color: #dc3545; background: #f8d7da; }
+        .audio-btn { background: #f5576c; color: white; border: none; width: 50px; height: 50px; border-radius: 50%; font-size: 24px; cursor: pointer; margin: 10px; transition: all 0.3s; }
+        .audio-btn:hover { background: #f093fb; transform: scale(1.1); }
+        .word-list { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 20px 0; }
+        .word-item { background: #f8f9ff; border: 2px solid #e0e0ff; border-radius: 8px; padding: 15px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .word-item:hover { border-color: #f093fb; transform: translateY(-2px); }
+        .word-item.completed { border-color: #28a745; background: #d4edda; }
+        .word-text { font-weight: bold; color: #333; font-size: 16px; }
+        .word-sounds { font-size: 12px; color: #666; margin-top: 5px; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
+        .stat-card { background: #f8f9ff; border-radius: 12px; padding: 20px; text-align: center; }
+        .stat-number { font-size: 32px; font-weight: bold; color: #f5576c; }
+        .stat-label { font-size: 13px; color: #666; margin-top: 5px; }
+        @media (max-width: 600px) { .header h1 { font-size: 24px; } .card { padding: 15px; } .mode-grid { grid-template-columns: 1fr; } .sound-breakdown { flex-direction: column; align-items: center; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔤 Interactive Word Builder</h1>
+            <p>Build shorthand outlines from consonants and vowels</p>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText">0 / 20 words completed</div>
+        </div>
+
+        <div class="card" id="welcomeScreen">
+            <div class="welcome-content">
+                <h2>Build Your First Words!</h2>
+                <p>Now that you know consonants and vowels, let's combine them to create real shorthand outlines.</p>
+                <div class="mode-grid">
+                    <div class="mode-card" onclick="startMode('guided')"><div class="mode-icon">🎯</div><div class="mode-title">Guided Building</div><div class="mode-desc">Step-by-step word construction with hints</div></div>
+                    <div class="mode-card" onclick="startMode('quiz')"><div class="mode-icon">❓</div><div class="mode-title">Quiz Mode</div><div class="mode-desc">Choose the correct outline for each word</div></div>
+                    <div class="mode-card" onclick="startMode('practice')"><div class="mode-icon">✏️</div><div class="mode-title">Free Practice</div><div class="mode-desc">Build any word from the practice list</div></div>
+                    <div class="mode-card" onclick="startMode('stats')"><div class="mode-icon">📊</div><div class="mode-title">Your Progress</div><div class="mode-desc">View your statistics and achievements</div></div>
+                </div>
+                <button class="btn" onclick="startMode('guided')">Start with Guided →</button>
+            </div>
+        </div>
+
+        <div class="card hidden" id="guidedScreen">
+            <h2>Guided Word Building</h2>
+            <div class="steps-indicator"><div class="step active" id="step1">1</div><div class="step" id="step2">2</div><div class="step" id="step3">3</div><div class="step" id="step4">4</div></div>
+            <div class="word-info"><div class="word-display" id="currentWord">PAT</div><div class="word-pronunciation" id="wordPronunciation">/pæt/ - as in "pat the dog"</div><button class="audio-btn" onclick="playWordSound()">🔊</button></div>
+            <div class="sound-breakdown" id="soundBreakdown"><div class="sound-chip">P</div><div class="sound-chip vowel">A</div><div class="sound-chip">T</div></div>
+            <div id="step1Content"><h3 style="text-align: center; color: #666; margin: 20px 0;">Step 1: Choose the first consonant</h3><div class="consonant-options" id="consonantOptions1"></div></div>
+            <div id="step2Content" class="hidden"><h3 style="text-align: center; color: #666; margin: 20px 0;">Step 2: Choose the vowel</h3><div class="vowel-options" id="vowelOptions"></div></div>
+            <div id="step3Content" class="hidden"><h3 style="text-align: center; color: #666; margin: 20px 0;">Step 3: Choose the second consonant</h3><div class="consonant-options" id="consonantOptions2"></div></div>
+            <div id="step4Content" class="hidden"><h3 style="text-align: center; color: #666; margin: 20px 0;">Step 4: Review your outline</h3><div class="outline-preview"><div id="outlineDisplay" style="font-size: 48px; color: #f093fb;"></div></div><div class="feedback info" id="outlineFeedback"></div></div>
+            <div class="feedback hidden" id="buildFeedback"></div>
+            <div class="action-buttons"><button class="btn btn-secondary" onclick="backToWelcome()">← Back</button><button class="btn" id="checkBtn" onclick="checkCurrentStep()">Check Answer</button><button class="btn btn-success hidden" id="nextBtn" onclick="nextWord()">Next Word →</button></div>
+        </div>
+
+        <div class="card hidden" id="quizScreen">
+            <h2>Quiz: Choose the Correct Outline</h2>
+            <div class="word-info"><div class="word-display" id="quizWord">BAT</div><button class="audio-btn" onclick="playQuizWordSound()">🔊</button></div>
+            <div class="quiz-options-grid" id="quizOptions"></div>
+            <div class="feedback hidden" id="quizFeedback"></div>
+            <div class="action-buttons"><button class="btn btn-secondary" onclick="backToWelcome()">← Back</button><button class="btn" onclick="checkQuizAnswer()">Submit Answer</button></div>
+        </div>
+
+        <div class="card hidden" id="practiceScreen">
+            <h2>Free Practice</h2>
+            <p>Choose any word from the list to practice building:</p>
+            <div class="word-list" id="practiceWordList"></div>
+            <div class="action-buttons"><button class="btn btn-secondary" onclick="backToWelcome()">← Back to Menu</button></div>
+        </div>
+
+        <div class="card hidden" id="statsScreen">
+            <h2>Your Progress</h2>
+            <div class="stats-grid">
+                <div class="stat-card"><div class="stat-number" id="wordsCompleted">0</div><div class="stat-label">Words Completed</div></div>
+                <div class="stat-card"><div class="stat-number" id="accuracy">0%</div><div class="stat-label">Accuracy</div></div>
+                <div class="stat-card"><div class="stat-number" id="streak">0</div><div class="stat-label">Day Streak</div></div>
+                <div class="stat-card"><div class="stat-number" id="timeSpent">0</div><div class="stat-label">Minutes Practiced</div></div>
+            </div>
+            <h3 style="margin-top: 30px;">Words Mastered</h3>
+            <div class="word-list" id="masteredWords"></div>
+            <div class="action-buttons"><button class="btn btn-secondary" onclick="backToWelcome()">← Back to Menu</button><button class="btn" onclick="resetProgress()">Reset Progress</button></div>
+        </div>
+
+        <div class="card hidden" id="completeScreen">
+            <div style="text-align: center; padding: 40px;">
+                <h2 style="color: #f5576c; font-size: 32px; margin-bottom: 15px;">🎉 Excellent!</h2>
+                <p id="completeMessage">You've built this word correctly!</p>
+                <div style="font-size: 64px; margin: 20px 0;">⭐</div>
+                <button class="btn" onclick="nextWord()">Continue →</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const wordDatabase = [
+            { word: 'PAT', sounds: ['P', 'A', 'T'], pronunciation: '/pæt/', example: 'pat the dog', outline: 'P-A-T', difficulty: 1 },
+            { word: 'BAT', sounds: ['B', 'A', 'T'], pronunciation: '/bæt/', example: 'baseball bat', outline: 'B-A-T', difficulty: 1 },
+            { word: 'TAP', sounds: ['T', 'A', 'P'], pronunciation: '/tæp/', example: 'tap the water', outline: 'T-A-P', difficulty: 1 },
+            { word: 'BAD', sounds: ['B', 'A', 'D'], pronunciation: '/bæd/', example: 'not good', outline: 'B-A-D', difficulty: 1 },
+            { word: 'DAD', sounds: ['D', 'A', 'D'], pronunciation: '/dæd/', example: 'father', outline: 'D-A-D', difficulty: 1 },
+            { word: 'PAD', sounds: ['P', 'A', 'D'], pronunciation: '/pæd/', example: 'writing pad', outline: 'P-A-D', difficulty: 1 },
+            { word: 'CAP', sounds: ['K', 'A', 'P'], pronunciation: '/kæp/', example: 'baseball cap', outline: 'K-A-P', difficulty: 1 },
+            { word: 'CAT', sounds: ['K', 'A', 'T'], pronunciation: '/kæt/', example: 'pet cat', outline: 'K-A-T', difficulty: 1 },
+            { word: 'COT', sounds: ['K', 'O', 'T'], pronunciation: '/kɒt/', example: 'small bed', outline: 'K-O-T', difficulty: 2 },
+            { word: 'POT', sounds: ['P', 'O', 'T'], pronunciation: '/pɒt/', example: 'cooking pot', outline: 'P-O-T', difficulty: 2 },
+            { word: 'TOP', sounds: ['T', 'O', 'P'], pronunciation: '/tɒp/', example: 'the top', outline: 'T-O-P', difficulty: 2 },
+            { word: 'TOT', sounds: ['T', 'O', 'T'], pronunciation: '/tɒt/', example: 'small child', outline: 'T-O-T', difficulty: 2 },
+            { word: 'POP', sounds: ['P', 'O', 'P'], pronunciation: '/pɒp/', example: 'pop music', outline: 'P-O-P', difficulty: 2 },
+            { word: 'BOB', sounds: ['B', 'O', 'B'], pronunciation: '/bɒb/', example: 'bob up and down', outline: 'B-O-B', difficulty: 2 },
+            { word: 'PEP', sounds: ['P', 'E', 'P'], pronunciation: '/pep/', example: 'energy', outline: 'P-E-P', difficulty: 2 },
+            { word: 'BET', sounds: ['B', 'E', 'T'], pronunciation: '/bet/', example: 'make a bet', outline: 'B-E-T', difficulty: 2 },
+            { word: 'PET', sounds: ['P', 'E', 'T'], pronunciation: '/pet/', example: 'pet animal', outline: 'P-E-T', difficulty: 2 },
+            { word: 'GET', sounds: ['G', 'E', 'T'], pronunciation: '/get/', example: 'obtain', outline: 'G-E-T', difficulty: 2 },
+            { word: 'DEBT', sounds: ['D', 'E', 'T'], pronunciation: '/det/', example: 'money owed', outline: 'D-E-T', difficulty: 2 },
+            { word: 'BIT', sounds: ['B', 'I', 'T'], pronunciation: '/bɪt/', example: 'small piece', outline: 'B-I-T', difficulty: 3 }
+        ];
+
+        const consonants = ['P', 'B', 'T', 'D', 'CH', 'J', 'K', 'G'];
+        const vowels = [
+            { name: 'AH', symbol: '•', position: 1, type: 'long' },
+            { name: 'A', symbol: '•', position: 2, type: 'long' },
+            { name: 'E', symbol: '•', position: 3, type: 'long' },
+            { name: 'AW', symbol: '—', position: 1, type: 'long' },
+            { name: 'O', symbol: '—', position: 2, type: 'long' },
+            { name: 'OO', symbol: '—', position: 3, type: 'long' },
+            { name: 'a', symbol: '·', position: 1, type: 'short' },
+            { name: 'e', symbol: '·', position: 2, type: 'short' },
+            { name: 'i', symbol: '·', position: 3, type: 'short' },
+            { name: 'o', symbol: '·', position: 1, type: 'short' },
+            { name: 'u', symbol: '·', position: 2, type: 'short' },
+            { name: 'oo', symbol: '·', position: 3, type: 'short' }
+        ];
+
+        let currentMode = null;
+        let currentWordIndex = 0;
+        let currentStep = 1;
+        let userBuild = [];
+        let selectedQuizOption = null;
+        let stats = { wordsCompleted: 0, correctAttempts: 0, totalAttempts: 0, streak: 0, timeSpent: 0, masteredWords: [] };
+
+        function init() { loadStats(); updateStatsDisplay(); }
+        function showScreen(screenId) { document.querySelectorAll('.card').forEach(card => { if (card.id !== screenId) card.classList.add('hidden'); }); document.getElementById(screenId).classList.remove('hidden'); }
+        function startMode(mode) { currentMode = mode; if (mode === 'guided') { document.getElementById('welcomeScreen').classList.add('hidden'); document.getElementById('guidedScreen').classList.remove('hidden'); loadWord(0); } else if (mode === 'quiz') { document.getElementById('welcomeScreen').classList.add('hidden'); document.getElementById('quizScreen').classList.remove('hidden'); loadQuizWord(); } else if (mode === 'practice') { document.getElementById('welcomeScreen').classList.add('hidden'); document.getElementById('practiceScreen').classList.remove('hidden'); loadPracticeList(); } else if (mode === 'stats') { document.getElementById('welcomeScreen').classList.add('hidden'); document.getElementById('statsScreen').classList.remove('hidden'); updateStatsDisplay(); } }
+
+        function loadWord(index) {
+            if (index >= wordDatabase.length) index = 0;
+            currentWordIndex = index;
+            const word = wordDatabase[index];
+            document.getElementById('currentWord').textContent = word.word;
+            document.getElementById('wordPronunciation').textContent = `${word.pronunciation} - as in "${word.example}"`;
+            const breakdown = document.getElementById('soundBreakdown');
+            breakdown.innerHTML = '';
+            word.sounds.forEach((sound, i) => {
+                const chip = document.createElement('div');
+                chip.className = `sound-chip ${['A', 'E', 'I', 'O', 'U', 'AH', 'AW', 'OO'].includes(sound) ? 'vowel' : ''}`;
+                chip.textContent = sound;
+                breakdown.appendChild(chip);
+            });
+            currentStep = 1;
+            userBuild = [];
+            updateStepDisplay();
+            setupConsonantOptions(1);
+        }
+
+        function updateStepDisplay() {
+            for (let i = 1; i <= 4; i++) {
+                const step = document.getElementById(`step${i}`);
+                const content = document.getElementById(`step${i}Content`);
+                if (i < currentStep) { step.className = 'step completed'; content.classList.add('hidden'); }
+                else if (i === currentStep) { step.className = 'step active'; content.classList.remove('hidden'); }
+                else { step.className = 'step'; content.classList.add('hidden'); }
+            }
+            document.getElementById('checkBtn').classList.toggle('hidden', currentStep === 4);
+        }
+
+        function setupConsonantOptions(stepNum) {
+            const container = document.getElementById(`consonantOptions${stepNum}`);
+            container.innerHTML = '';
+            consonants.forEach(c => {
+                const btn = document.createElement('div');
+                btn.className = 'consonant-btn';
+                btn.textContent = c;
+                btn.onclick = () => selectConsonant(c, stepNum, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function setupVowelOptions() {
+            const container = document.getElementById('vowelOptions');
+            container.innerHTML = '';
+            vowels.forEach(v => {
+                const btn = document.createElement('div');
+                btn.className = 'vowel-btn';
+                btn.textContent = v.name;
+                btn.onclick = () => selectVowel(v, btn);
+                container.appendChild(btn);
+            });
+        }
+
+        function selectConsonant(consonant, stepNum, btnElement) {
+            const container = document.getElementById(`consonantOptions${stepNum}`);
+            container.querySelectorAll('.consonant-btn').forEach(b => b.classList.remove('selected'));
+            btnElement.classList.add('selected');
+            if (stepNum === 1) userBuild[0] = consonant;
+            else userBuild[2] = consonant;
+        }
+
+        function selectVowel(vowel, btnElement) {
+            document.getElementById('vowelOptions').querySelectorAll('.vowel-btn').forEach(b => b.classList.remove('selected'));
+            btnElement.classList.add('selected');
+            userBuild[1] = vowel.name;
+        }
+
+        function checkCurrentStep() {
+            const word = wordDatabase[currentWordIndex];
+            const feedback = document.getElementById('buildFeedback');
+            feedback.classList.remove('hidden', 'correct', 'incorrect');
+            stats.totalAttempts++;
+
+            if (currentStep === 1) {
+                if (userBuild[0] === word.sounds[0]) {
+                    feedback.classList.add('correct');
+                    feedback.textContent = '✓ Correct! First consonant is right.';
+                    setTimeout(() => { currentStep = 2; userBuild = [userBuild[0]]; updateStepDisplay(); setupVowelOptions(); feedback.classList.add('hidden'); }, 1000);
+                } else {
+                    feedback.classList.add('incorrect');
+                    feedback.textContent = `✗ Not quite. The first sound in "${word.word}" is ${word.sounds[0]}. Try again!`;
+                }
+            } else if (currentStep === 2) {
+                if (userBuild[1] === word.sounds[1]) {
+                    feedback.classList.add('correct');
+                    feedback.textContent = '✓ Perfect! Vowel is correct.';
+                    setTimeout(() => { currentStep = 3; userBuild = [userBuild[0], userBuild[1]]; updateStepDisplay(); setupConsonantOptions(2); feedback.classList.add('hidden'); }, 1000);
+                } else {
+                    feedback.classList.add('incorrect');
+                    feedback.textContent = `✗ The vowel sound in "${word.word}" is ${word.sounds[1]}. Listen again!`;
+                }
+            } else if (currentStep === 3) {
+                if (userBuild[2] === word.sounds[2]) {
+                    feedback.classList.add('correct');
+                    feedback.textContent = '✓ Excellent! All sounds are correct.';
+                    setTimeout(() => { currentStep = 4; updateStepDisplay(); showOutline(); feedback.classList.add('hidden'); }, 1000);
+                } else {
+                    feedback.classList.add('incorrect');
+                    feedback.textContent = `✗ The last sound in "${word.word}" is ${word.sounds[2]}. Try again!`;
+                }
+            }
+            saveStats();
+        }
+
+        function showOutline() {
+            const word = wordDatabase[currentWordIndex];
+            const outline = userBuild.join('-');
+            document.getElementById('outlineDisplay').textContent = outline;
+            document.getElementById('outlineFeedback').textContent = `💡 In Pitman shorthand, "${word.word}" is written: ${outline}`;
+        }
+
+        function nextWord() { currentWordIndex++; if (currentWordIndex >= wordDatabase.length) currentWordIndex = 0; loadWord(currentWordIndex); }
+
+        function loadQuizWord() {
+            const index = Math.floor(Math.random() * wordDatabase.length);
+            const word = wordDatabase[index];
+            document.getElementById('quizWord').textContent = word.word;
+            const options = document.getElementById('quizOptions');
+            options.innerHTML = '';
+            let quizWords = [word];
+            while (quizWords.length < 4) {
+                const random = wordDatabase[Math.floor(Math.random() * wordDatabase.length)];
+                if (!quizWords.includes(random)) quizWords.push(random);
+            }
+            quizWords.sort(() => Math.random() - 0.5);
+            quizWords.forEach((w, idx) => {
+                const option = document.createElement('div');
+                option.className = 'quiz-outline-option';
+                option.textContent = w.outline;
+                option.onclick = () => selectQuizOption(idx, w.word);
+                options.appendChild(option);
+            });
+            selectedQuizOption = null;
+            document.getElementById('quizFeedback').classList.add('hidden');
+        }
+
+        function selectQuizOption(index, word) {
+            document.querySelectorAll('.quiz-outline-option').forEach((opt, idx) => { opt.classList.remove('selected'); if (idx === index) opt.classList.add('selected'); });
+            selectedQuizOption = word;
+        }
+
+        function checkQuizAnswer() {
+            if (!selectedQuizOption) { alert('Please select an answer!'); return; }
+            const word = wordDatabase.find(w => w.word === document.getElementById('quizWord').textContent);
+            const feedback = document.getElementById('quizFeedback');
+            feedback.classList.remove('hidden', 'correct', 'incorrect');
+            stats.totalAttempts++;
+
+            if (selectedQuizOption === word.word) {
+                feedback.classList.add('correct');
+                feedback.textContent = '✓ Correct! Well done!';
+                stats.correctAttempts++;
+                stats.wordsCompleted++;
+                if (!stats.masteredWords.includes(word.word)) stats.masteredWords.push(word.word);
+                document.querySelectorAll('.quiz-outline-option').forEach(opt => { if (opt.textContent === word.outline) opt.classList.add('correct'); });
+                saveStats();
+                setTimeout(() => { loadQuizWord(); }, 1500);
+            } else {
+                feedback.classList.add('incorrect');
+                feedback.textContent = `✗ Not quite. The correct outline for "${word.word}" is ${word.outline}`;
+            }
+            saveStats();
+        }
+
+        function loadPracticeList() {
+            const list = document.getElementById('practiceWordList');
+            list.innerHTML = '';
+            wordDatabase.forEach((word, idx) => {
+                const item = document.createElement('div');
+                item.className = 'word-item';
+                if (stats.masteredWords.includes(word.word)) item.classList.add('completed');
+                item.innerHTML = `<div class="word-text">${word.word}</div><div class="word-sounds">${word.sounds.join(' - ')}</div>`;
+                item.onclick = () => { currentWordIndex = idx; currentMode = 'guided'; document.getElementById('practiceScreen').classList.add('hidden'); document.getElementById('guidedScreen').classList.remove('hidden'); loadWord(idx); };
+                list.appendChild(item);
+            });
+        }
+
+        function updateStatsDisplay() {
+            document.getElementById('wordsCompleted').textContent = stats.wordsCompleted;
+            const accuracy = stats.totalAttempts > 0 ? Math.round((stats.correctAttempts / stats.totalAttempts) * 100) : 0;
+            document.getElementById('accuracy').textContent = `${accuracy}%`;
+            document.getElementById('streak').textContent = stats.streak;
+            document.getElementById('timeSpent').textContent = stats.timeSpent;
+            const masteredList = document.getElementById('masteredWords');
+            if (masteredList) {
+                masteredList.innerHTML = '';
+                stats.masteredWords.forEach(word => {
+                    const item = document.createElement('div');
+                    item.className = 'word-item completed';
+                    item.innerHTML = `<div class="word-text">${word}</div>`;
+                    masteredList.appendChild(item);
+                });
+            }
+            const percentage = (stats.wordsCompleted / wordDatabase.length) * 100;
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+            document.getElementById('progressText').textContent = `${stats.wordsCompleted} / ${wordDatabase.length} words completed`;
+        }
+
+        function playWordSound() { const word = wordDatabase[currentWordIndex]; alert(`🔊 Playing: "${word.word}" (${word.pronunciation}) - as in "${word.example}"`); }
+        function playQuizWordSound() { const word = document.getElementById('quizWord').textContent; const wordData = wordDatabase.find(w => w.word === word); alert(`🔊 Playing: "${word}" (${wordData.pronunciation})`); }
+        function backToWelcome() { document.querySelectorAll('.card').forEach(card => card.classList.add('hidden')); document.getElementById('welcomeScreen').classList.remove('hidden'); }
+
+        function saveStats() { localStorage.setItem('shorthandWordBuilderStats', JSON.stringify(stats)); updateStatsDisplay(); }
+        function loadStats() { const saved = localStorage.getItem('shorthandWordBuilderStats'); if (saved) stats = JSON.parse(saved); }
+        function resetProgress() { if (confirm('Are you sure you want to reset all progress?')) { stats = { wordsCompleted: 0, correctAttempts: 0, totalAttempts: 0, streak: 0, timeSpent: 0, masteredWords: [] }; saveStats(); updateStatsDisplay(); } }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

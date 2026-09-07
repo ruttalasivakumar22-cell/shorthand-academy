@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitman Lab - Consonants | Shorthand Academy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .header h1 { color: #667eea; font-size: 28px; margin-bottom: 5px; }
+        .header p { color: #666; font-size: 14px; }
+        .progress-bar { background: #f0f0f0; border-radius: 10px; height: 10px; margin-top: 15px; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.5s ease; }
+        .progress-text { text-align: right; font-size: 12px; color: #666; margin-top: 5px; }
+        .card { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .card h2 { color: #333; font-size: 22px; margin-bottom: 15px; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: transform 0.2s; margin: 5px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .hidden { display: none; }
+        .consonant-intro { text-align: center; padding: 30px; }
+        .consonant-intro h2 { color: #667eea; font-size: 32px; margin-bottom: 15px; }
+        .consonant-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 15px; margin: 20px 0; }
+        .consonant-card { background: #f8f9ff; border: 2px solid #e0e0ff; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .consonant-card:hover { border-color: #667eea; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2); }
+        .consonant-card.selected { border-color: #667eea; background: #e8eaff; }
+        .consonant-letter { font-size: 48px; font-weight: bold; color: #667eea; margin-bottom: 10px; }
+        .consonant-name { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .consonant-desc { font-size: 12px; color: #666; }
+        .canvas-container { background: #f8f9ff; border: 2px dashed #ccc; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        canvas { border: 2px solid #667eea; border-radius: 8px; background: white; cursor: crosshair; }
+        .feedback { padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center; font-weight: bold; }
+        .feedback.correct { background: #d4edda; color: #155724; }
+        .feedback.incorrect { background: #f8d7da; color: #721c24; }
+        .feedback.info { background: #d1ecf1; color: #0c5460; }
+        .quiz-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)); gap: 10px; margin: 20px 0; }
+        .quiz-option { padding: 15px; border: 2px solid #e0e0ff; border-radius: 8px; background: white; cursor: pointer; text-align: center; transition: all 0.3s; font-weight: bold; }
+        .quiz-option:hover { border-color: #667eea; background: #f8f9ff; }
+        .quiz-option.selected { border-color: #667eea; background: #e8eaff; }
+        .quiz-option.correct { border-color: #28a745; background: #d4edda; }
+        .quiz-option.incorrect { border-color: #dc3545; background: #f8d7da; }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+        .lesson-complete { text-align: center; padding: 40px; }
+        .lesson-complete h2 { color: #667eea; font-size: 32px; margin-bottom: 15px; }
+        .star { font-size: 48px; color: #ffc107; margin: 10px; }
+        @media (max-width: 600px) { .header h1 { font-size: 24px; } .card { padding: 15px; } .consonant-grid { grid-template-columns: repeat(4, 1fr); } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔤 Pitman Lab - Consonants</h1>
+            <p>Master the 8 basic consonant strokes: P, B, T, D, CH, J, K, G</p>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText">0 / 8 lessons completed</div>
+        </div>
+
+        <div class="card" id="welcomeScreen">
+            <div class="consonant-intro">
+                <h2>Welcome to Consonant Lab!</h2>
+                <p>In Pitman shorthand, consonants are written as strokes with specific directions and weights.</p>
+                <p style="margin: 20px 0;"><strong>Light strokes:</strong> P, T, CH, K (thin lines)<br><strong>Heavy strokes:</strong> B, D, J, G (thick lines)</p>
+                <div class="consonant-grid" id="consonantGrid"></div>
+                <button class="btn" onclick="startLesson()">Start Learning →</button>
+            </div>
+        </div>
+
+        <div class="card hidden" id="lessonScreen">
+            <h2 id="lessonTitle">Lesson 1</h2>
+            <p id="lessonInstruction">Learn this consonant stroke</p>
+            <div style="text-align: center; margin: 20px 0;"><div id="consonantDisplay" style="font-size: 72px; font-weight: bold; color: #667eea;">P</div><p id="consonantExample" style="color: #666; font-size: 16px; margin-top: 10px;">as in "pat, spin, tap"</p></div>
+            <div class="canvas-container"><canvas id="strokeCanvas" width="300" height="200"></canvas><p style="margin-top: 15px; color: #666; font-size: 14px;" id="strokeDirection">Direction: Downward stroke</p></div>
+            <div class="feedback info" id="lessonFeedback">💡 Tip: This is a light stroke - draw it with a thin line.</div>
+            <div style="text-align: center; margin: 20px 0;"><button class="btn" onclick="practiceStroke()">✏️ Practice Writing</button><button class="btn btn-secondary" onclick="nextLesson()">Next →</button></div>
+        </div>
+
+        <div class="card hidden" id="practiceScreen">
+            <h2>Practice: <span id="practiceConsonant">P</span></h2>
+            <p>Trace the stroke below</p>
+            <div class="canvas-container" style="min-height: 250px;"><canvas id="practiceCanvas" width="300" height="200" style="border: 2px solid #667eea; border-radius: 8px; background: white;"></canvas><p style="margin-top: 10px; color: #666; font-size: 13px;">Use your mouse or finger to draw</p></div>
+            <div id="practiceFeedback" class="feedback hidden"></div>
+            <div style="text-align: center; margin: 20px 0;"><button class="btn" onclick="checkPractice()">✓ Check My Answer</button><button class="btn btn-secondary" onclick="clearPractice()">Clear</button><button class="btn btn-secondary" onclick="backToLesson()">← Back</button></div>
+        </div>
+
+        <div class="card hidden" id="quizScreen">
+            <h2>Quick Quiz</h2>
+            <p id="quizQuestion">Which consonant is this?</p>
+            <div class="quiz-options" id="quizOptions"></div>
+            <div id="quizFeedback" class="feedback hidden"></div>
+            <div style="text-align: center; margin: 20px 0;"><button class="btn" onclick="checkQuiz()">Submit Answer</button><button class="btn btn-secondary" onclick="backToLesson()">← Back</button></div>
+        </div>
+
+        <div class="card hidden" id="completeScreen">
+            <div class="lesson-complete">
+                <h2>🎉 Lesson Complete!</h2>
+                <div class="star">⭐</div>
+                <p id="completeMessage">Great job! You've mastered this consonant.</p>
+                <button class="btn" onclick="nextLesson()">Continue →</button>
+            </div>
+        </div>
+
+        <div class="card hidden" id="allCompleteScreen">
+            <div class="lesson-complete">
+                <h2>🏆 Congratulations!</h2>
+                <p>You've completed all 8 consonant lessons!</p>
+                <div style="margin: 20px 0;"><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div>
+                <p>You now understand:</p>
+                <ul style="text-align: left; display: inline-block; color: #666;"><li>8 basic consonant strokes</li><li>Light vs heavy strokes</li><li>Stroke directions</li><li>Pitman fundamentals</li></ul>
+                <br><button class="btn" onclick="restartCourse()">🔄 Review Again</button><button class="btn btn-secondary" onclick="goHome()">🏠 Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const consonants = [
+            { letter: 'P', name: 'P', type: 'light', direction: 'Downward', example: 'pat, spin, tap', description: 'Light downward stroke' },
+            { letter: 'B', name: 'B', type: 'heavy', direction: 'Downward', example: 'bat, obey, tub', description: 'Heavy downward stroke' },
+            { letter: 'T', name: 'T', type: 'light', direction: 'Downward', example: 'top, stick, net', description: 'Light downward stroke' },
+            { letter: 'D', name: 'D', type: 'heavy', direction: 'Downward', example: 'dog, adobe, rod', description: 'Heavy downward stroke' },
+            { letter: 'CH', name: 'CH', type: 'light', direction: 'Downward', example: 'chat, nature, much', description: 'Light downward stroke' },
+            { letter: 'J', name: 'J', type: 'heavy', direction: 'Downward', example: 'jam, age, edge', description: 'Heavy downward stroke' },
+            { letter: 'K', name: 'K', type: 'light', direction: 'Horizontal', example: 'cat, key, back', description: 'Light horizontal stroke' },
+            { letter: 'G', name: 'G', type: 'heavy', direction: 'Horizontal', example: 'go, big, egg', description: 'Heavy horizontal stroke' }
+        ];
+
+        let currentLesson = 0;
+        let completedLessons = 0;
+        let selectedQuizOption = null;
+        let practiceCanvas, practiceCtx, isDrawing = false;
+
+        function init() {
+            practiceCanvas = document.getElementById('practiceCanvas');
+            practiceCtx = practiceCanvas.getContext('2d');
+            setupCanvas();
+            loadProgress();
+            displayConsonantGrid();
+        }
+
+        function setupCanvas() {
+            practiceCtx.strokeStyle = '#667eea';
+            practiceCtx.lineWidth = 3;
+            practiceCtx.lineCap = 'round';
+            practiceCtx.lineJoin = 'round';
+            practiceCanvas.addEventListener('mousedown', startDrawing);
+            practiceCanvas.addEventListener('mousemove', draw);
+            practiceCanvas.addEventListener('mouseup', stopDrawing);
+            practiceCanvas.addEventListener('mouseout', stopDrawing);
+            practiceCanvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e.touches[0]); });
+            practiceCanvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); });
+            practiceCanvas.addEventListener('touchend', stopDrawing);
+        }
+
+        function startDrawing(e) { isDrawing = true; const rect = practiceCanvas.getBoundingClientRect(); const x = (e.clientX || e.pageX) - rect.left; const y = (e.clientY || e.pageY) - rect.top; practiceCtx.beginPath(); practiceCtx.moveTo(x, y); }
+        function draw(e) { if (!isDrawing) return; const rect = practiceCanvas.getBoundingClientRect(); const x = (e.clientX || e.pageX) - rect.left; const y = (e.clientY || e.pageY) - rect.top; practiceCtx.lineTo(x, y); practiceCtx.stroke(); }
+        function stopDrawing() { isDrawing = false; }
+        function clearPractice() { practiceCtx.clearRect(0, 0, practiceCanvas.width, practiceCanvas.height); document.getElementById('practiceFeedback').classList.add('hidden'); }
+
+        function displayConsonantGrid() {
+            const grid = document.getElementById('consonantGrid');
+            grid.innerHTML = '';
+            consonants.forEach(c => {
+                const card = document.createElement('div');
+                card.className = 'consonant-card';
+                card.innerHTML = `<div class="consonant-letter">${c.letter}</div><div class="consonant-name">${c.name}</div><div class="consonant-desc">${c.type} - ${c.direction}</div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function showScreen(screenId) { document.querySelectorAll('.card > div, .card > h2').forEach(el => { if (!el.classList.contains('header')) el.classList.add('hidden'); }); document.querySelectorAll('.card').forEach(card => { if (card.id !== screenId) card.classList.add('hidden'); }); document.getElementById(screenId).classList.remove('hidden'); }
+
+        function startLesson() { document.getElementById('welcomeScreen').classList.add('hidden'); loadLesson(currentLesson); }
+
+        function loadLesson(index) {
+            if (index >= consonants.length) { showAllComplete(); return; }
+            const c = consonants[index];
+            showScreen('lessonScreen');
+            document.getElementById('lessonTitle').textContent = `Lesson ${index + 1}: ${c.letter}`;
+            document.getElementById('lessonInstruction').textContent = 'Learn this consonant stroke';
+            document.getElementById('consonantDisplay').textContent = c.letter;
+            document.getElementById('consonantExample').textContent = `as in "${c.example}"`;
+            document.getElementById('strokeDirection').textContent = `Direction: ${c.direction} - ${c.description}`;
+            document.getElementById('lessonFeedback').textContent = `💡 ${c.type === 'light' ? 'Light' : 'Heavy'} stroke - draw it ${c.type === 'light' ? 'thin' : 'thick'}.`;
+        }
+
+        function practiceStroke() { showScreen('practiceScreen'); document.getElementById('practiceConsonant').textContent = consonants[currentLesson].letter; clearPractice(); }
+
+        function checkPractice() {
+            const feedback = document.getElementById('practiceFeedback');
+            feedback.classList.remove('hidden', 'correct', 'incorrect');
+            feedback.classList.add('correct');
+            feedback.textContent = '✓ Good! Remember the direction and weight.';
+            setTimeout(() => { showQuiz(); }, 1500);
+        }
+
+        function backToLesson() { loadLesson(currentLesson); }
+
+        function showQuiz() {
+            showScreen('quizScreen');
+            const c = consonants[currentLesson];
+            document.getElementById('quizQuestion').textContent = `Which consonant is this? (${c.type} ${c.direction.toLowerCase()} stroke)`;
+            const options = document.getElementById('quizOptions');
+            options.innerHTML = '';
+            let quizConsonants = [c];
+            while (quizConsonants.length < 4) {
+                const random = consonants[Math.floor(Math.random() * consonants.length)];
+                if (!quizConsonants.includes(random)) quizConsonants.push(random);
+            }
+            quizConsonants.sort(() => Math.random() - 0.5);
+            quizConsonants.forEach((cons, idx) => {
+                const option = document.createElement('div');
+                option.className = 'quiz-option';
+                option.textContent = cons.letter;
+                option.onclick = () => selectQuizOption(idx, cons.letter);
+                options.appendChild(option);
+            });
+            selectedQuizOption = null;
+            document.getElementById('quizFeedback').classList.add('hidden');
+        }
+
+        function selectQuizOption(index, letter) {
+            document.querySelectorAll('.quiz-option').forEach((opt, idx) => { opt.classList.remove('selected'); if (idx === index) opt.classList.add('selected'); });
+            selectedQuizOption = letter;
+        }
+
+        function checkQuiz() {
+            if (!selectedQuizOption) { alert('Please select an answer!'); return; }
+            const feedback = document.getElementById('quizFeedback');
+            const currentLetter = consonants[currentLesson].letter;
+            feedback.classList.remove('hidden', 'correct', 'incorrect');
+            if (selectedQuizOption === currentLetter) {
+                feedback.classList.add('correct');
+                feedback.textContent = '✓ Correct! Well done!';
+                document.querySelectorAll('.quiz-option').forEach(opt => { if (opt.textContent === currentLetter) opt.classList.add('correct'); });
+                setTimeout(() => { completeLesson(); }, 1500);
+            } else {
+                feedback.classList.add('incorrect');
+                feedback.textContent = '✗ Not quite. Try again!';
+            }
+        }
+
+        function completeLesson() {
+            completedLessons++;
+            saveProgress();
+            updateProgress();
+            showScreen('completeScreen');
+            document.getElementById('completeMessage').textContent = `Great job! You've mastered the ${consonants[currentLesson].letter} stroke.`;
+        }
+
+        function nextLesson() {
+            currentLesson++;
+            if (currentLesson >= consonants.length) { showAllComplete(); } else { loadLesson(currentLesson); }
+        }
+
+        function showAllComplete() { document.querySelectorAll('.card').forEach(card => card.classList.add('hidden')); document.getElementById('allCompleteScreen').classList.remove('hidden'); }
+
+        function restartCourse() { currentLesson = 0; completedLessons = 0; saveProgress(); updateProgress(); document.getElementById('allCompleteScreen').classList.add('hidden'); document.getElementById('welcomeScreen').classList.remove('hidden'); displayConsonantGrid(); }
+
+        function goHome() { alert('This would take you back to the Shorthand Academy home page!'); location.reload(); }
+
+        function updateProgress() { const percentage = (completedLessons / consonants.length) * 100; document.getElementById('progressFill').style.width = `${percentage}%`; document.getElementById('progressText').textContent = `${completedLessons} / ${consonants.length} lessons completed`; }
+
+        function saveProgress() { localStorage.setItem('shorthandConsonantProgress', JSON.stringify({ currentLesson, completedLessons })); }
+
+        function loadProgress() { const saved = localStorage.getItem('shorthandConsonantProgress'); if (saved) { const data = JSON.parse(saved); currentLesson = data.currentLesson || 0; completedLessons = data.completedLessons || 0; updateProgress(); } }
+
+        window.onload = init;
+    </script>
+</body>
+</html>

@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pitman Vowel Lab - Shorthand Academy</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 20px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { background: white; border-radius: 15px; padding: 20px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .header h1 { color: #667eea; font-size: 28px; margin-bottom: 5px; }
+        .header p { color: #666; font-size: 14px; }
+        .progress-bar { background: #f0f0f0; border-radius: 10px; height: 10px; margin-top: 15px; overflow: hidden; }
+        .progress-fill { background: linear-gradient(90deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.5s ease; }
+        .progress-text { text-align: right; font-size: 12px; color: #666; margin-top: 5px; }
+        .card { background: white; border-radius: 15px; padding: 25px; margin-bottom: 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.2); }
+        .card h2 { color: #333; font-size: 22px; margin-bottom: 15px; }
+        .card p { color: #666; line-height: 1.6; margin-bottom: 15px; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 12px 25px; border-radius: 8px; font-size: 16px; cursor: pointer; transition: transform 0.2s; margin: 5px; }
+        .btn:hover { transform: translateY(-2px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: #f0f0f0; color: #333; }
+        .hidden { display: none; }
+        .vowel-intro { text-align: center; padding: 30px; }
+        .vowel-intro h2 { color: #667eea; font-size: 32px; margin-bottom: 15px; }
+        .vowel-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; margin: 20px 0; }
+        .vowel-card { background: #f8f9ff; border: 2px solid #e0e0ff; border-radius: 12px; padding: 20px; text-align: center; cursor: pointer; transition: all 0.3s; }
+        .vowel-card:hover { border-color: #667eea; transform: translateY(-3px); box-shadow: 0 5px 15px rgba(102, 126, 234, 0.2); }
+        .vowel-card.selected { border-color: #667eea; background: #e8eaff; }
+        .vowel-symbol { font-size: 48px; margin-bottom: 10px; }
+        .vowel-name { font-weight: bold; color: #333; margin-bottom: 5px; }
+        .vowel-example { font-size: 13px; color: #666; }
+        .position-indicator { display: flex; justify-content: center; gap: 20px; margin: 20px 0; }
+        .position-btn { padding: 10px 20px; border: 2px solid #e0e0ff; background: white; border-radius: 8px; cursor: pointer; transition: all 0.3s; }
+        .position-btn:hover { border-color: #667eea; }
+        .position-btn.active { border-color: #667eea; background: #e8eaff; color: #667eea; font-weight: bold; }
+        .canvas-container { background: #f8f9ff; border: 2px dashed #ccc; border-radius: 12px; padding: 20px; text-align: center; margin: 20px 0; min-height: 200px; display: flex; flex-direction: column; justify-content: center; align-items: center; }
+        .stroke-guide { position: relative; width: 300px; height: 150px; margin: 0 auto; }
+        .guide-line { position: absolute; width: 100%; height: 2px; background: #ddd; }
+        .guide-line.top { top: 30px; }
+        .guide-line.middle { top: 75px; }
+        .guide-line.bottom { top: 120px; }
+        .vowel-display { position: absolute; font-size: 64px; color: #667eea; transition: all 0.3s; }
+        .feedback { padding: 15px; border-radius: 8px; margin: 15px 0; text-align: center; font-weight: bold; }
+        .feedback.correct { background: #d4edda; color: #155724; }
+        .feedback.incorrect { background: #f8d7da; color: #721c24; }
+        .feedback.info { background: #d1ecf1; color: #0c5460; }
+        .quiz-options { display: grid; grid-template-columns: repeat(auto-fit, minmax(120px, 1fr)); gap: 10px; margin: 20px 0; }
+        .quiz-option { padding: 15px; border: 2px solid #e0e0ff; border-radius: 8px; background: white; cursor: pointer; text-align: center; transition: all 0.3s; }
+        .quiz-option:hover { border-color: #667eea; background: #f8f9ff; }
+        .quiz-option.selected { border-color: #667eea; background: #e8eaff; }
+        .quiz-option.correct { border-color: #28a745; background: #d4edda; }
+        .quiz-option.incorrect { border-color: #dc3545; background: #f8d7da; }
+        .nav-buttons { display: flex; justify-content: space-between; margin-top: 20px; }
+        .lesson-complete { text-align: center; padding: 40px; }
+        .lesson-complete h2 { color: #667eea; font-size: 32px; margin-bottom: 15px; }
+        .star { font-size: 48px; color: #ffc107; margin: 10px; }
+        @media (max-width: 600px) { .header h1 { font-size: 24px; } .card { padding: 15px; } .vowel-grid { grid-template-columns: repeat(2, 1fr); } .stroke-guide { width: 100%; } }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🎯 Pitman Vowel Lab</h1>
+            <p>Master the 12 vowel sounds - dots, dashes, and positions</p>
+            <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            <div class="progress-text" id="progressText">0 / 12 lessons completed</div>
+        </div>
+
+        <div class="card" id="welcomeScreen">
+            <div class="vowel-intro">
+                <h2>Welcome to Vowel Lab!</h2>
+                <p>In Pitman shorthand, vowels are represented by <strong>dots</strong> and <strong>dashes</strong> placed in three positions around consonant strokes.</p>
+                <p><strong>12 vowel sounds total:</strong></p>
+                <ul style="text-align: left; display: inline-block; color: #666;"><li>6 long vowels (heavy dots/dashes)</li><li>6 short vowels (light dots/dashes)</li></ul>
+                <p style="margin-top: 20px;"><strong>Three positions:</strong></p>
+                <div class="position-indicator">
+                    <div class="position-btn active">1st Place</div>
+                    <div class="position-btn">2nd Place</div>
+                    <div class="position-btn">3rd Place</div>
+                </div>
+                <button class="btn" onclick="startLesson()">Start Learning →</button>
+            </div>
+        </div>
+
+        <div class="card hidden" id="lessonScreen">
+            <h2 id="lessonTitle">Lesson 1</h2>
+            <p id="lessonInstruction">Learn this vowel sound</p>
+            <div style="text-align: center; margin: 20px 0;">
+                <button class="btn" style="width: 50px; height: 50px; border-radius: 50%; font-size: 24px;" onclick="playVowelSound()">🔊</button>
+                <p id="vowelSoundName" style="font-size: 18px; font-weight: bold; color: #667eea; margin-top: 10px;">AH</p>
+                <p id="vowelExample" style="color: #666;">as in "father, calm, palm"</p>
+            </div>
+            <div class="canvas-container">
+                <div class="stroke-guide">
+                    <div class="guide-line top"></div>
+                    <div class="guide-line middle"></div>
+                    <div class="guide-line bottom"></div>
+                    <div class="vowel-display" id="vowelDisplay"></div>
+                </div>
+                <p style="margin-top: 15px; color: #666; font-size: 14px;"><span id="positionLabel">First position</span> - <span id="vowelType">Heavy dot</span></p>
+            </div>
+            <div class="feedback info" id="lessonFeedback">💡 Tip: This vowel is written at the beginning of the stroke, above the line.</div>
+            <div style="text-align: center; margin: 20px 0;"><button class="btn" onclick="practiceVowel()">✏️ Practice Writing</button><button class="btn btn-secondary" onclick="nextLesson()">Next →</button></div>
+        </div>
+
+        <div class="card hidden" id="practiceScreen">
+            <h2>Practice: <span id="practiceVowelName">AH</span></h2>
+            <p>Draw the vowel in the correct position</p>
+            <div class="canvas-container" style="min-height: 250px;"><canvas id="practiceCanvas" width="300" height="200" style="border: 2px solid #667eea; border-radius: 8px; background: white;"></canvas><p style="margin-top: 10px; color: #666; font-size: 13px;">Use your mouse or finger to draw</p></div>
+            <div id="practiceFeedback" class="feedback hidden"></div>
+            <div style="text-align: center; margin: 20px 0;"><button class="btn" onclick="checkPractice()">✓ Check My Answer</button><button class="btn btn-secondary" onclick="clearPractice()">Clear</button><button class="btn btn-secondary" onclick="backToLesson()">← Back</button></div>
+        </div>
+
+        <div class="card hidden" id="quizScreen">
+            <h2>Quick Quiz</h2>
+            <p id="quizQuestion">Which vowel is this?</p>
+            <div style="text-align: center; margin: 20px 0;"><button class="btn" style="width: 50px; height: 50px; border-radius: 50%; font-size: 24px;" onclick="playQuizSound()">🔊</button></div>
+            <div class="quiz-options" id="quizOptions"></div>
+            <div id="quizFeedback" class="feedback hidden"></div>
+            <div style="text-align: center; margin: 20px 0;"><button class="btn" onclick="checkQuiz()">Submit Answer</button><button class="btn btn-secondary" onclick="backToLesson()">← Back</button></div>
+        </div>
+
+        <div class="card hidden" id="completeScreen">
+            <div class="lesson-complete">
+                <h2>🎉 Lesson Complete!</h2>
+                <div class="star">⭐</div>
+                <p id="completeMessage">Great job! You've mastered this vowel.</p>
+                <button class="btn" onclick="nextLesson()">Continue →</button>
+            </div>
+        </div>
+
+        <div class="card hidden" id="allCompleteScreen">
+            <div class="lesson-complete">
+                <h2>🏆 Congratulations!</h2>
+                <p>You've completed all 12 vowel lessons!</p>
+                <div style="margin: 20px 0;"><span class="star">⭐</span><span class="star">⭐</span><span class="star">⭐</span></div>
+                <p>You now understand:</p>
+                <ul style="text-align: left; display: inline-block; color: #666;"><li>All 12 vowel sounds</li><li>Dots vs dashes</li><li>First, second, and third positions</li><li>Long vs short vowels</li></ul>
+                <br><button class="btn" onclick="restartCourse()">🔄 Review Again</button><button class="btn btn-secondary" onclick="goHome()">🏠 Home</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const vowels = [
+            { id: 1, name: 'AH', type: 'long', symbol: '•', symbolType: 'heavy_dot', position: 1, positionName: 'First', example: 'father, calm, palm', sound: 'ah', description: 'Heavy dot in first position - written at the beginning of the stroke, above the line' },
+            { id: 2, name: 'A', type: 'long', symbol: '•', symbolType: 'heavy_dot', position: 2, positionName: 'Second', example: 'plate, rate, mate', sound: 'a', description: 'Heavy dot in second position - written in the middle of the stroke, on the line' },
+            { id: 3, name: 'E', type: 'long', symbol: '•', symbolType: 'heavy_dot', position: 3, positionName: 'Third', example: 'peak, ream, meet', sound: 'e', description: 'Heavy dot in third position - written at the end of the stroke' },
+            { id: 4, name: 'AW', type: 'long', symbol: '—', symbolType: 'heavy_dash', position: 1, positionName: 'First', example: 'paul, rod, top', sound: 'aw', description: 'Heavy dash in first position - written at the beginning of the stroke, above the line' },
+            { id: 5, name: 'O', type: 'long', symbol: '—', symbolType: 'heavy_dash', position: 2, positionName: 'Second', example: 'goat, shore, boat', sound: 'o', description: 'Heavy dash in second position - written in the middle of the stroke, on the line' },
+            { id: 6, name: 'OO', type: 'long', symbol: '—', symbolType: 'heavy_dash', position: 3, positionName: 'Third', example: 'tour, shoot, boot', sound: 'oo', description: 'Heavy dash in third position - written at the end of the stroke' },
+            { id: 7, name: 'a', type: 'short', symbol: '·', symbolType: 'light_dot', position: 1, positionName: 'First', example: 'bat, cat, mat', sound: 'a_short', description: 'Light dot in first position - short vowel sound' },
+            { id: 8, name: 'e', type: 'short', symbol: '·', symbolType: 'light_dot', position: 2, positionName: 'Second', example: 'bet, get, met', sound: 'e_short', description: 'Light dot in second position - short vowel sound' },
+            { id: 9, name: 'i', type: 'short', symbol: '·', symbolType: 'light_dot', position: 3, positionName: 'Third', example: 'bit, sit, hit', sound: 'i_short', description: 'Light dot in third position - short vowel sound' },
+            { id: 10, name: 'o', type: 'short', symbol: '·', symbolType: 'light_dot', position: 1, positionName: 'First', example: 'tock, lock, mock', sound: 'o_short', description: 'Light dot in first position - short vowel sound' },
+            { id: 11, name: 'u', type: 'short', symbol: '·', symbolType: 'light_dot', position: 2, positionName: 'Second', example: 'tuck, luck, much', sound: 'u_short', description: 'Light dot in second position - short vowel sound' },
+            { id: 12, name: 'oo', type: 'short', symbol: '·', symbolType: 'light_dot', position: 3, positionName: 'Third', example: 'took, look, book', sound: 'oo_short', description: 'Light dot in third position - short vowel sound' }
+        ];
+
+        let currentLesson = 0;
+        let completedLessons = 0;
+        let selectedQuizOption = null;
+        let canvas, ctx, isDrawing = false;
+
+        function init() { canvas = document.getElementById('practiceCanvas'); ctx = canvas.getContext('2d'); setupCanvas(); loadProgress(); }
+
+        function setupCanvas() { ctx.strokeStyle = '#667eea'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; drawGuideLines(); canvas.addEventListener('mousedown', startDrawing); canvas.addEventListener('mousemove', draw); canvas.addEventListener('mouseup', stopDrawing); canvas.addEventListener('mouseout', stopDrawing); canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e.touches[0]); }); canvas.addEventListener('touchmove', (e) => { e.preventDefault(); draw(e.touches[0]); }); canvas.addEventListener('touchend', stopDrawing); }
+
+        function drawGuideLines() { ctx.clearRect(0, 0, canvas.width, canvas.height); ctx.strokeStyle = '#e0e0ff'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, 50); ctx.lineTo(300, 50); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, 100); ctx.lineTo(300, 100); ctx.stroke(); ctx.beginPath(); ctx.moveTo(0, 150); ctx.lineTo(300, 150); ctx.stroke(); }
+
+        function startDrawing(e) { isDrawing = true; const rect = canvas.getBoundingClientRect(); const x = (e.clientX || e.pageX) - rect.left; const y = (e.clientY || e.pageY) - rect.top; ctx.beginPath(); ctx.moveTo(x, y); }
+        function draw(e) { if (!isDrawing) return; const rect = canvas.getBoundingClientRect(); const x = (e.clientX || e.pageX) - rect.left; const y = (e.clientY || e.pageY) - rect.top; ctx.lineTo(x, y); ctx.stroke(); }
+        function stopDrawing() { isDrawing = false; }
+        function clearPractice() { drawGuideLines(); document.getElementById('practiceFeedback').classList.add('hidden'); }
+
+        function showScreen(screenId) { document.querySelectorAll('.card > div, .card > h2').forEach(el => { if (!el.classList.contains('header')) el.classList.add('hidden'); }); document.querySelectorAll('.card').forEach(card => { if (card.id !== screenId) card.classList.add('hidden'); }); document.getElementById(screenId).classList.remove('hidden'); }
+
+        function startLesson() { document.getElementById('welcomeScreen').classList.add('hidden'); loadLesson(currentLesson); }
+
+        function loadLesson(index) {
+            if (index >= vowels.length) { showAllComplete(); return; }
+            const vowel = vowels[index];
+            showScreen('lessonScreen');
+            document.getElementById('lessonTitle').textContent = `Lesson ${index + 1}: ${vowel.name}`;
+            document.getElementById('lessonInstruction').textContent = 'Learn this vowel sound';
+            document.getElementById('vowelSoundName').textContent = vowel.name;
+            document.getElementById('vowelExample').textContent = `as in "${vowel.example}"`;
+            document.getElementById('positionLabel').textContent = `${vowel.positionName} position`;
+            document.getElementById('vowelType').textContent = vowel.type === 'long' ? 'Heavy ' + (vowel.symbolType.includes('dot') ? 'dot' : 'dash') : 'Light dot';
+            document.getElementById('lessonFeedback').textContent = `💡 ${vowel.description}`;
+            const display = document.getElementById('vowelDisplay');
+            display.textContent = vowel.symbol;
+            display.style.top = vowel.position === 1 ? '10px' : vowel.position === 2 ? '55px' : '100px';
+            display.style.left = '125px';
+        }
+
+        function playVowelSound() { const vowel = vowels[currentLesson]; alert(`🔊 Playing sound: ${vowel.name} (as in "${vowel.example}")`); }
+        function practiceVowel() { showScreen('practiceScreen'); document.getElementById('practiceVowelName').textContent = vowels[currentLesson].name; clearPractice(); }
+
+        function checkPractice() {
+            const feedback = document.getElementById('practiceFeedback');
+            feedback.classList.remove('hidden', 'correct', 'incorrect');
+            feedback.classList.add('correct');
+            feedback.textContent = '✓ Good! Remember to place the vowel in the correct position.';
+            setTimeout(() => { showQuiz(); }, 1500);
+        }
+
+        function backToLesson() { loadLesson(currentLesson); }
+
+        function showQuiz() {
+            showScreen('quizScreen');
+            const vowel = vowels[currentLesson];
+            document.getElementById('quizQuestion').textContent = `Which vowel is this? (${vowel.type} ${vowel.symbolType.includes('dot') ? 'dot' : 'dash'}, ${vowel.positionName} position)`;
+            const options = document.getElementById('quizOptions');
+            options.innerHTML = '';
+            let quizVowels = [vowel];
+            while (quizVowels.length < 4) {
+                const random = vowels[Math.floor(Math.random() * vowels.length)];
+                if (!quizVowels.includes(random)) quizVowels.push(random);
+            }
+            quizVowels.sort(() => Math.random() - 0.5);
+            quizVowels.forEach((v, idx) => {
+                const option = document.createElement('div');
+                option.className = 'quiz-option';
+                option.textContent = v.name;
+                option.onclick = () => selectQuizOption(idx, v.id);
+                options.appendChild(option);
+            });
+            selectedQuizOption = null;
+            document.getElementById('quizFeedback').classList.add('hidden');
+        }
+
+        function selectQuizOption(index, vowelId) {
+            document.querySelectorAll('.quiz-option').forEach((opt, idx) => { opt.classList.remove('selected'); if (idx === index) opt.classList.add('selected'); });
+            selectedQuizOption = vowelId;
+        }
+
+        function checkQuiz() {
+            if (!selectedQuizOption) { alert('Please select an answer!'); return; }
+            const feedback = document.getElementById('quizFeedback');
+            const currentVowelId = vowels[currentLesson].id;
+            feedback.classList.remove('hidden', 'correct', 'incorrect');
+            if (selectedQuizOption === currentVowelId) {
+                feedback.classList.add('correct');
+                feedback.textContent = '✓ Correct! Well done!';
+                document.querySelectorAll('.quiz-option').forEach(opt => { if (opt.textContent === vowels[currentLesson].name) opt.classList.add('correct'); });
+                setTimeout(() => { completeLesson(); }, 1500);
+            } else {
+                feedback.classList.add('incorrect');
+                feedback.textContent = '✗ Not quite. Try again!';
+            }
+        }
+
+        function playQuizSound() { const vowel = vowels[currentLesson]; alert(`🔊 Playing sound: ${vowel.name}`); }
+
+        function completeLesson() {
+            completedLessons++;
+            saveProgress();
+            updateProgress();
+            showScreen('completeScreen');
+            document.getElementById('completeMessage').textContent = `Great job! You've mastered the ${vowels[currentLesson].name} vowel.`;
+        }
+
+        function nextLesson() {
+            currentLesson++;
+            if (currentLesson >= vowels.length) { showAllComplete(); } else { loadLesson(currentLesson); }
+        }
+
+        function showAllComplete() { document.querySelectorAll('.card').forEach(card => card.classList.add('hidden')); document.getElementById('allCompleteScreen').classList.remove('hidden'); }
+
+        function restartCourse() { currentLesson = 0; completedLessons = 0; saveProgress(); updateProgress(); document.getElementById('allCompleteScreen').classList.add('hidden'); document.getElementById('welcomeScreen').classList.remove('hidden'); }
+
+        function goHome() { alert('This would take you back to the Shorthand Academy home page!'); location.reload(); }
+
+        function updateProgress() { const percentage = (completedLessons / vowels.length) * 100; document.getElementById('progressFill').style.width = `${percentage}%`; document.getElementById('progressText').textContent = `${completedLessons} / ${vowels.length} lessons completed`; }
+
+        function saveProgress() { localStorage.setItem('shorthandVowelProgress', JSON.stringify({ currentLesson, completedLessons })); }
+
+        function loadProgress() { const saved = localStorage.getItem('shorthandVowelProgress'); if (saved) { const data = JSON.parse(saved); currentLesson = data.currentLesson || 0; completedLessons = data.completedLessons || 0; updateProgress(); } }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
